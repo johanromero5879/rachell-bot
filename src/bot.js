@@ -3,9 +3,9 @@ const client = new Client()
 
 const prefix = '!'
 
-client.on('message', message => {
-    // Ignore all script if message doesn't start with prefix or author is a bot
-    if (!message.content.startsWith(prefix) || message.author.bot) return
+client.on('message', async (message) => {
+    // Ignore all script if message doesn't come from a guild, not start with prefix or author is a bot
+    if (!message.guild || !message.content.startsWith(prefix) || message.author.bot) return
 
     // Extract arguments from command
     const args = message.content.slice(prefix.length).split(/ +/)
@@ -16,10 +16,13 @@ client.on('message', message => {
     // Handle commands
     try{
         const { command } = require(`./commands/${ cmd }.js`)
-        command.run(client, message, args)
+        await command.run(client, message, args)
     }catch(ex){
-        console.error(ex.message)
-        message.reply(`**${ cmd }** command not found`)
+        if(ex.message.includes('Cannot find module')){
+            message.reply(`**${ cmd }** command not found`)
+        }else{
+            console.error(ex)
+        }
     }
 })
 
