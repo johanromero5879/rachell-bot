@@ -1,7 +1,25 @@
-import { Client } from 'discord.js'
+import { join } from 'path'
+import { readdirSync } from 'fs'
+import { Client, Collection } from 'discord.js'
+
+const prefix = process.env.PREFIX || '!'
 const client = new Client()
 
-const prefix = '!'
+// Create queue inside bot
+client.queue = new Map()
+
+// Getting all commands and save them in a collection map
+client.commands = new Collection()
+
+const files = readdirSync( join(__dirname, 'commands') )
+for (const file of files) {
+    if( !file.endsWith('.js') ) break
+    const { command } = require(`./commands/${ file }`)
+    const commandName = file.split('.')[0]
+
+    client.commands.set( commandName, command )
+}
+
 
 client.on('message', async (message) => {
     // Ignore all script if message doesn't come from a guild, not start with prefix or author is a bot
@@ -14,16 +32,11 @@ client.on('message', async (message) => {
     const cmd = args.shift().toLocaleLowerCase()
 
     // Handle commands
-    try{
-        const { command } = require(`./commands/${ cmd }.js`)
-        await command.run(client, message, args)
-    }catch(ex){
-        if(ex.message.includes('Cannot find module')){
-            message.reply(`**${ cmd }** command not found`)
-        }else{
-            console.error(ex)
-        }
-    }
+    const command = client.commands.get( cmd )
+
+    if( !command ) return message.reply(`**${ cmd }** command not found`)
+
+    await command.run(client, message, args)
 })
 
 client.on('ready', () => {
