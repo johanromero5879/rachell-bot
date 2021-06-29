@@ -92,6 +92,39 @@ export const skip = async ( message ) => {
         
     if( queue.songs.length !==  0){
         queue.songs.shift()
+        queue.textChannel.send("⏩ Song has been skipped")
         play( queue.songs[0], message )
+    }
+}
+
+export const pause = async ( message ) => {
+    if( !message.member.voice.channel ) 
+        return sendError('Please connect to a voice channel.', message)
+
+    const queue = message.client.queue.get( message.guild.id )
+
+    if( !queue )
+        return sendError('There is nothing playing right now to pause.', message)
+
+    if( queue.playing ){
+        queue.playing = false
+        queue.connection.dispatcher.pause()
+        queue.textChannel.send("⏸ Song has been paused")
+    }
+}
+
+export const resume = async ( message ) => {
+    if( !message.member.voice.channel ) 
+        return sendError('Please connect to a voice channel.', message)
+
+    const queue = message.client.queue.get( message.guild.id )
+
+    if( !queue )
+        return sendError('There is nothing playing right now to pause.', message)
+
+    if( !queue.playing ){
+        queue.playing = true
+        queue.connection.dispatcher.resume()
+        queue.textChannel.send("▶️ Song has been resumed")
     }
 }

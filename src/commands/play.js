@@ -40,7 +40,7 @@ export const command = {
         
         const videoInfo = await youtube.findOne( args.join(' ') )
         if(!videoInfo)
-            return sendError('Song not found.', message)
+            return sendError('Search not found.', message)
 
         const { id, title, thumbnails, duration } = videoInfo
         const url = `https://www.youtube.com/watch?v=${ id }`
