@@ -17,7 +17,7 @@ export const command = {
         }
         
         if( volume > limit ){
-            const gifUrl = await getGif( 'miku pout' )
+            const gifUrl = await getGif( 'miku pout', 1 )
             return sendWithImage( 'Do you want to break my ears? ヽ（≧□≦）ノ', gifUrl, message )
         }
 

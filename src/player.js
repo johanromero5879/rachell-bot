@@ -163,3 +163,20 @@ export const loop = async ( message ) => {
     queue.loop = !queue.loop
     queue.textChannel.send(`🔁 Loop is now ${queue.loop ? "on" : "off"}`)
 }
+
+export const stop = async ( message ) => {
+    if( !message.member.voice.channel ) 
+        return sendError('Please connect to a voice channel.', message)
+
+    const queue = message.client.queue.get( message.guild.id )
+
+    if( !queue )
+        return sendError('There is nothing playing right now to stop.', message)
+    
+    // Leave voice channel and delete queue map from guild
+    queue.voiceChannel.leave()
+    queue.textChannel.send("⏹ Queue has stopped")
+    message.client.queue.delete( message.guild.id )
+
+    
+}
