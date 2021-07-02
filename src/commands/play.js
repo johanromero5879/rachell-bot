@@ -24,6 +24,9 @@ const hasPermissions = (client, message) => {
 }
 
 export const command = {
+    name: 'play',
+    group: 'music',
+    description: "Start playing a song",
     run: async (client, message, args) => {
         // Check if author is on voice channel
         if( !message.member.voice.channel ) 

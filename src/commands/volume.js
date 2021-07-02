@@ -5,6 +5,9 @@ import { getGif } from '../helpers/GifFetcher'
 const limit = 75
 
 export const command = {
+    name: 'volume',
+    group: 'music',
+    description: 'Set volume of songs in queue.',
     run: async (client, message, args) => {
 
         const volume = parseFloat(args[0])

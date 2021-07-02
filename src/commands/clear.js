@@ -1,4 +1,7 @@
 export const command = {
+    name: 'clear',
+    group: 'moderation',
+    description: 'Clear all the message last 14 days.',
     run: async (client, message, args) => {
         if(!message.guild) return 
 
