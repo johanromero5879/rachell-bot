@@ -2,8 +2,30 @@ import { MessageEmbed } from 'discord.js'
 import ytdl from 'ytdl-core-discord'
 
 import { formatSeconds } from './helpers/DateFormater'
-import { sendError } from './helpers/MessagesHandler'
 
+export const validate = ( message ) => {
+    // Check if author is on voice channel
+    if( !message.member.voice.channel ){
+        message.lineReplyNoMention('Please connect to a voice channel.')
+        return false
+    }
+
+    const queue = message.client.queue.get( message.guild.id )
+
+    // Chekc if queue exists in guild
+    if( !queue ){
+        message.lineReplyNoMention('There is nothing in queue.')
+        return false
+    }
+
+    // Check if user is in same voice channel that bot
+    if( message.member.voice.channel.id !== queue.voiceChannel.id ){
+        message.lineReplyNoMention("You're not in same voice channel than me. o_o")
+        return false
+    }
+    
+    return true
+}
 
 export const addQueue = ( song, message ) => {
     let queue = message.client.queue.get( message.guild.id )
@@ -43,6 +65,7 @@ export const play = async ( song, message ) => {
 
     if( !song ){
         queue.voiceChannel.leave()
+        queue.textChannel.send("⏹ Queue has stopped")
         message.client.queue.delete( message.guild.id )
         return
     }
@@ -87,13 +110,10 @@ const handleControlPanel = async ( controlPanel ) => {
 }
 
 export const skip = async ( message ) => {
-    if( !message.member.voice.channel ) 
-        return sendError('Please connect to a voice channel.', message)
+
+    if( !validate( message ) ) return
 
     const queue = message.client.queue.get( message.guild.id )
-
-    if( !queue )
-        return sendError('There is nothing in the queue right now.', message)
         
     if( queue.songs.length !==  0){
         queue.songs.shift()
@@ -105,13 +125,9 @@ export const skip = async ( message ) => {
 }
 
 export const pause = async ( message ) => {
-    if( !message.member.voice.channel ) 
-        return sendError('Please connect to a voice channel.', message)
+    if( !validate( message ) ) return
 
     const queue = message.client.queue.get( message.guild.id )
-
-    if( !queue )
-        return sendError('There is nothing playing right now to pause.', message)
 
     if( queue.playing ){
         queue.playing = false
@@ -121,13 +137,9 @@ export const pause = async ( message ) => {
 }
 
 export const resume = async ( message ) => {
-    if( !message.member.voice.channel ) 
-        return sendError('Please connect to a voice channel.', message)
+    if( !validate( message ) ) return
 
     const queue = message.client.queue.get( message.guild.id )
-
-    if( !queue )
-        return sendError('There is nothing playing right now to pause.', message)
 
     if( !queue.playing ){
         queue.playing = true
@@ -137,13 +149,7 @@ export const resume = async ( message ) => {
 }
 
 export const setVolume = async ( volume, message ) => {
-    if( !message.member.voice.channel ) 
-        return sendError('Please connect to a voice channel.', message)
-
     const queue = message.client.queue.get( message.guild.id )
-
-    if( !queue )
-        return sendError('There is nothing playing right now to set volume.', message)
 
     queue.volume = Math.round(volume * 100) / 100
     queue.connection.dispatcher.setVolume(queue.volume / 100)
@@ -152,31 +158,21 @@ export const setVolume = async ( volume, message ) => {
 
 export const loop = async ( message ) => {
 
-    if( !message.member.voice.channel ) 
-        return sendError('Please connect to a voice channel.', message)
+    if( !validate( message ) ) return
 
     const queue = message.client.queue.get( message.guild.id )
-
-    if( !queue )
-        return sendError('There is nothing playing right now to toogle loop.', message)
 
     queue.loop = !queue.loop
     queue.textChannel.send(`🔁 Loop is now ${queue.loop ? "on" : "off"}`)
 }
 
 export const stop = async ( message ) => {
-    if( !message.member.voice.channel ) 
-        return sendError('Please connect to a voice channel.', message)
+    if( !validate( message ) ) return
 
     const queue = message.client.queue.get( message.guild.id )
-
-    if( !queue )
-        return sendError('There is nothing playing right now to stop.', message)
     
     // Leave voice channel and delete queue map from guild
     queue.voiceChannel.leave()
     queue.textChannel.send("⏹ Queue has stopped")
     message.client.queue.delete( message.guild.id )
-
-    
 }

@@ -1,6 +1,7 @@
 import { join } from 'path'
 import { readdirSync } from 'fs'
 import { Client, Collection } from 'discord.js'
+import 'discord-reply'
 
 const prefix = process.env.PREFIX || '!'
 const client = new Client()
@@ -34,7 +35,8 @@ client.on('message', async (message) => {
     // Handle commands
     const command = client.commands.get( cmd )
 
-    if( !command ) return message.reply(`**${ cmd }** command not found`)
+    if( !command ) 
+        return message.lineReplyNoMention(`**${ cmd }** command not found`)
 
     await command.run(client, message, args)
 })
