@@ -77,10 +77,10 @@ export const play = async ( song, message ) => {
     const connection = await message.member.voice.channel.join() 
 
     // Play song
-    queue.controlPanel?.delete()
+    deleteControlPanel(message)
     const dispatcher = connection.play(stream, { type: 'opus' })
     dispatcher.on('finish', () => {
-        queue.controlPanel?.delete()
+        deleteControlPanel(message)
 
         if(!queue.loop)
             queue.songs.shift()
@@ -148,6 +148,15 @@ const handleControlPanel = async ( controlPanel, message ) => {
                 break;
         }
     })
+}
+
+const deleteControlPanel = async ( message ) => {
+    const queue = message.client.queue.get( message.guild.id )
+    try{
+        await queue.controlPanel?.delete()
+    }catch(ex){
+        // Nothing
+    }
 }
 
 export const skip = async ( message ) => {
