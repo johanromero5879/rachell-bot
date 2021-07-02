@@ -77,6 +77,7 @@ export const play = async ( song, message ) => {
     const connection = await message.member.voice.channel.join() 
 
     // Play song
+    queue.controlPanel?.delete()
     const dispatcher = connection.play(stream, { type: 'opus' })
     dispatcher.on('finish', () => {
         queue.controlPanel?.delete()
@@ -99,14 +100,54 @@ export const play = async ( song, message ) => {
         .setFooter(`Requested by ${song.requester.tag}`, song.requester.avatarURL())
 
     queue.controlPanel = await queue.textChannel.send(embed)
-    handleControlPanel( queue.controlPanel )
+    handleControlPanel( queue.controlPanel, message )
 }
 
-const handleControlPanel = async ( controlPanel ) => {    
+const handleControlPanel = async ( controlPanel, message ) => {    
     await controlPanel.react("⏹")
     await controlPanel.react("🔁")
     await controlPanel.react("⏯️")
     await controlPanel.react("⏩")
+
+    // Collector to handle reactions events
+    const filter = (reaction, user) => user.id !== message.client.user?.id
+
+    const collector = controlPanel.createReactionCollector( filter )
+
+    collector.on("collect", (reaction , user ) => {
+        if (!validate(message)) {
+            reaction.users.remove(user)
+            return
+        }
+
+        const queue = message.client.queue.get( message.guild.id )
+
+        switch (reaction.emoji.name) {
+            case "⏹":
+                collector.stop()
+                stop(message)
+                break
+            case "🔁":
+                loop(message)
+                reaction.users.remove(user);
+                break
+            case "⏯️":
+                if (queue.playing) {
+                    pause(message)
+                } else {
+                    resume(message)
+                }
+                reaction.users.remove(user);
+                break
+            case "⏩":
+                collector.stop()
+                skip(message)
+                break
+            default:
+                reaction.users.remove(user)
+                break;
+        }
+    })
 }
 
 export const skip = async ( message ) => {
