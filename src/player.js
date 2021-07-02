@@ -4,6 +4,7 @@ import ytdl from 'ytdl-core-discord'
 import { formatSeconds } from './helpers/DateFormater'
 import { sendError } from './helpers/MessagesHandler'
 
+
 export const addQueue = ( song, message ) => {
     let queue = message.client.queue.get( message.guild.id )
 
@@ -127,4 +128,18 @@ export const resume = async ( message ) => {
         queue.connection.dispatcher.resume()
         queue.textChannel.send("▶️ Song has been resumed")
     }
+}
+
+export const setVolume = async ( volume, message ) => {
+    if( !message.member.voice.channel ) 
+        return sendError('Please connect to a voice channel.', message)
+
+    const queue = message.client.queue.get( message.guild.id )
+
+    if( !queue )
+        return sendError('There is nothing playing right now to set volume.', message)
+
+    queue.volume = Math.round(volume * 100) / 100
+    queue.connection.dispatcher.setVolume(queue.volume / 100)
+    queue.textChannel.send(`🔊 Current volume is ${queue.volume}%`)
 }
