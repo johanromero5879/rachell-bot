@@ -16,7 +16,8 @@ export const addQueue = ( song, message ) => {
             connection: null,
             songs: [],
             volume: 35,
-            playing: true
+            playing: true,
+            loop: false
         }
 
         message.client.queue.set( message.guild.id, queue )
@@ -56,7 +57,10 @@ export const play = async ( song, message ) => {
     const dispatcher = connection.play(stream, { type: 'opus' })
     dispatcher.on('finish', () => {
         queue.controlPanel?.delete()
-        queue.songs.shift();
+
+        if(!queue.loop)
+            queue.songs.shift()
+        
         play(queue.songs[0], message)
     })
 
@@ -93,7 +97,9 @@ export const skip = async ( message ) => {
         
     if( queue.songs.length !==  0){
         queue.songs.shift()
-        queue.textChannel.send("⏩ Song has been skipped")
+        if( queue.songs.length !== 0 )
+            queue.textChannel.send("⏩ Song has been skipped")
+
         play( queue.songs[0], message )
     }
 }
@@ -142,4 +148,18 @@ export const setVolume = async ( volume, message ) => {
     queue.volume = Math.round(volume * 100) / 100
     queue.connection.dispatcher.setVolume(queue.volume / 100)
     queue.textChannel.send(`🔊 Current volume is ${queue.volume}%`)
+}
+
+export const loop = async ( message ) => {
+
+    if( !message.member.voice.channel ) 
+        return sendError('Please connect to a voice channel.', message)
+
+    const queue = message.client.queue.get( message.guild.id )
+
+    if( !queue )
+        return sendError('There is nothing playing right now to toogle loop.', message)
+
+    queue.loop = !queue.loop
+    queue.textChannel.send(`🔁 Loop is now ${queue.loop ? "on" : "off"}`)
 }
