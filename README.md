@@ -3,7 +3,7 @@
 A discord bot
 
 ## Requirements
-- Node: 14.16.1
+- NodeJS: [14.16.1](https://nodejs.org/dist/v14.16.1/)
 
 ## Installation
 ```
